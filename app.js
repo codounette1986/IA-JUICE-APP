@@ -308,10 +308,17 @@ const exportButton = document.querySelector("#exportButton");
 const exportExcelButton = document.querySelector("#exportExcelButton");
 const importExcelInput = document.querySelector("#importExcelInput");
 const installButton = document.querySelector("#installButton");
+const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isAndroidDevice = /Android/i.test(navigator.userAgent);
+const isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 
 if (exportButton) exportButton.addEventListener("click", exportState);
 if (exportExcelButton) exportExcelButton.addEventListener("click", exportExcelWorkbook);
 if (importExcelInput) importExcelInput.addEventListener("change", importExcelWorkbook);
+
+if (isIosDevice) document.body.classList.add("is-ios");
+if (isAndroidDevice) document.body.classList.add("is-android");
+if (isStandaloneMode) document.body.classList.add("is-standalone");
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
@@ -321,12 +328,24 @@ window.addEventListener("beforeinstallprompt", (event) => {
 
 if (installButton) {
   installButton.addEventListener("click", async () => {
+    if (isIosDevice && !deferredPrompt) {
+      showToast("Sur iPhone: ouvrez Partager puis Ajouter à l'écran d'accueil.");
+      return;
+    }
+    if (isAndroidDevice && !deferredPrompt) {
+      showToast("Sur Android: ouvrez le menu du navigateur puis Installer l'application.");
+      return;
+    }
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
     deferredPrompt = null;
     installButton.hidden = true;
   });
+}
+
+if (installButton && isIosDevice && !isStandaloneMode) {
+  installButton.hidden = false;
 }
 
 if (location.protocol.startsWith("http") && "serviceWorker" in navigator) {
