@@ -151,6 +151,31 @@
                 <section id="pricingView" class="view">
           <section class="panel">
             <div class="panel-head">
+              <h3>Prix bouteilles et étiquettes</h3>
+            </div>
+            <form class="form-grid" id="pricingPackagingForm">
+              <label>
+                Prix bouteille GM
+                <input name="bottleGMPrice" form="pricingForm" type="number" min="0" step="1" value="0" required />
+              </label>
+              <label>
+                Prix étiquette GM
+                <input name="labelGMPrice" form="pricingForm" type="number" min="0" step="1" value="0" required />
+              </label>
+              <label>
+                Prix bouteille PM
+                <input name="bottlePMPrice" form="pricingForm" type="number" min="0" step="1" value="0" required />
+              </label>
+              <label>
+                Prix étiquette PM
+                <input name="labelPMPrice" form="pricingForm" type="number" min="0" step="1" value="0" required />
+              </label>
+            </form>
+            <p class="muted small">Ces montants sont partagés par toutes les catégories.</p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
               <h3>Pricing par catégorie</h3>
             </div>
             <div id="pricingTabs" class="pill-tabs"></div>
@@ -194,30 +219,6 @@
                   <button type="button" id="addPricingItem" class="ghost">Ajouter une ligne</button>
                 </div>
                 <div id="pricingItemsTable"></div>
-              </div>
-              <div id="pricingPackagingBlock" class="full pricing-block">
-                <div class="panel-head compact-head">
-                  <h3>Habillage global par format</h3>
-                </div>
-                <p class="muted small">Ces montants sont partagés par toutes les catégories.</p>
-                <div class="form-grid pricing-subgrid">
-                  <label>
-                    Prix bouteille GM
-                    <input name="bottleGMPrice" type="number" min="0" step="1" value="0" required />
-                  </label>
-                  <label>
-                    Prix étiquette GM
-                    <input name="labelGMPrice" type="number" min="0" step="1" value="0" required />
-                  </label>
-                  <label>
-                    Prix bouteille PM
-                    <input name="bottlePMPrice" type="number" min="0" step="1" value="0" required />
-                  </label>
-                  <label>
-                    Prix étiquette PM
-                    <input name="labelPMPrice" type="number" min="0" step="1" value="0" required />
-                  </label>
-                </div>
               </div>
               <div id="pricingResultBlock" class="full pricing-block">
                 <div class="panel-head compact-head">
