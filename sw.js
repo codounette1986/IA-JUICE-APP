@@ -1,4 +1,4 @@
-const CACHE_NAME = "iajuice-pwa-v4";
+const CACHE_NAME = "iajuice-pwa-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,6 +7,9 @@ const ASSETS = [
   "./supabase-config.js",
   "./manifest.webmanifest",
   "./assets/logo-iajuice.jpeg",
+  "./icons/apple-touch-icon-180.png",
+  "./icons/apple-touch-icon-167.png",
+  "./icons/apple-touch-icon-152.png",
   "./icons/logo-192.png",
   "./icons/logo-512.png",
   "./icons/logo-iajuice.jpeg"
