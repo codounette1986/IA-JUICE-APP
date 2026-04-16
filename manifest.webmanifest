@@ -1,0 +1,18 @@
+{
+  "name": "IA Juice App",
+  "short_name": "IA Juice",
+  "description": "Suivi production, ventes, clients et stock pour IA Juice.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f9f5ef",
+  "theme_color": "#f08a24",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icons/logo-iajuice.jpeg",
+      "sizes": "1080x1080",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

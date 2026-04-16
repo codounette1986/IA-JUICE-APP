@@ -1,0 +1,469 @@
+﻿<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="PWA de suivi de production, ventes, clients, stock et pricing pour IA Juice."
+    />
+    <meta name="theme-color" content="#f08a24" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon-192.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>IA Juice App</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div>
+          <img class="brand-logo" src="./assets/logo-iajuice.jpeg" alt="IA Juice" />
+          <h1>Gestion mobile</h1>
+          <p class="muted">
+            Production, ventes, pricing, packs et stock.
+          </p>
+        </div>
+
+        <nav class="nav" aria-label="Navigation principale">
+          <button class="nav-link active" data-view="dashboard">Dashboard</button>
+          <button class="nav-link" data-view="catalogue">Catalogue</button>
+          <button class="nav-link" data-view="clients">Clients</button>
+          <button class="nav-link" data-view="production">Production</button>
+          <button class="nav-link" data-view="ventes">Ventes</button>
+          <button class="nav-link" data-view="stock">Stock</button>
+          <button class="nav-link" data-view="pricing">Pricing</button>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Pilotage opÃ©rationnel</p>
+            <h2 id="viewTitle">Dashboard</h2>
+          </div>
+        </header>
+
+        <section id="dashboardView" class="view active">
+          <div class="hero">
+            <div>
+              <p class="eyebrow">Vue dâ€™ensemble</p>
+              <h3>Suivi quotidien IA Juice</h3>
+              <p class="muted">
+                Le tableau de bord combine ventes, bÃ©nÃ©fice, stock et performance
+                produit sur la pÃ©riode choisie.
+              </p>
+            </div>
+            <div id="todaySummary" class="today-summary"></div>
+          </div>
+
+          <div id="statsGrid" class="stats-grid"></div>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Filtre pÃ©riode</h3>
+            </div>
+            <form id="dashboardFilterForm" class="form-grid compact">
+              <label>
+                Du
+                <input name="from" type="date" />
+              </label>
+              <label>
+                Au
+                <input name="to" type="date" />
+              </label>
+              <div class="form-actions">
+                <button type="submit">Appliquer</button>
+                <button type="button" id="clearDashboardFilter" class="ghost">Effacer</button>
+              </div>
+            </form>
+            <div id="filterStats" class="stats-grid compact-stats"></div>
+          </section>
+
+          <div class="two-column">
+            <section class="panel">
+              <div class="panel-head"><h3>Produits les plus vendus</h3></div>
+              <div id="topProducts" class="list"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><h3>Alertes stock</h3></div>
+              <div id="stockAlerts" class="list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="catalogueView" class="view">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Catalogue produits</h3>
+              <button id="toggleProductForm" class="secondary">CrÃ©er un produit</button>
+            </div>
+            <div id="catalogueTable"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Produits inactifs</h3>
+            </div>
+            <div id="inactiveCatalogueTable"></div>
+          </section>
+        </section>
+
+        <section id="clientsView" class="view">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Base clients</h3>
+              <button id="toggleClientForm" class="secondary">CrÃ©er un client</button>
+            </div>
+            <div id="clientsTable"></div>
+          </section>
+        </section>
+
+        <section id="productionView" class="view">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Production consolidÃ©e</h3>
+              <button id="toggleProductionForm" class="secondary">CrÃ©er un lot</button>
+            </div>
+            <div id="productionTable"></div>
+          </section>
+        </section>
+
+        <section id="ventesView" class="view">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Ventes dÃ©taillÃ©es</h3>
+              <button id="toggleSaleForm" class="secondary">CrÃ©er une vente</button>
+            </div>
+            <div id="salesTable"></div>
+          </section>
+        </section>
+
+        <section id="stockView" class="view">
+          <section class="panel">
+            <div class="panel-head"><h3>Stock & rentabilitÃ©</h3></div>
+            <div id="stockTable"></div>
+          </section>
+        </section>
+
+                <section id="pricingView" class="view">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Pricing par catégorie</h3>
+            </div>
+            <div id="pricingTabs" class="pill-tabs"></div>
+            <div class="spacer"></div>
+            <div id="pricingSummary" class="list"></div>
+          </section>
+
+          <section class="panel form-panel">
+            <div class="panel-head"><h3>Calcul coût de revient</h3></div>
+            <form id="pricingForm" class="form-grid">
+              <label>
+                Produit
+                <select name="productId" required></select>
+              </label>
+              <label>
+                Prix de vente
+                <input name="defaultPrice" type="number" min="0" step="1" required />
+              </label>
+              <label id="pricingPmProductField">
+                Code produit PM
+                <select name="pmProductId" required></select>
+              </label>
+              <div id="pricingProductionBlock" class="full pricing-block">
+                <div class="panel-head compact-head">
+                  <h3>Sortie production</h3>
+                </div>
+                <div class="form-grid pricing-subgrid">
+                  <label>
+                    Bouteilles GM
+                    <input name="pricingQtyGM" type="number" min="0" step="1" value="0" required />
+                  </label>
+                  <label>
+                    Bouteilles PM
+                    <input name="pricingQtyPM" type="number" min="0" step="1" value="0" required />
+                  </label>
+                </div>
+              </div>
+              <div id="pricingJuiceBlock" class="full pricing-block">
+                <div class="panel-head compact-head">
+                  <h3>Préparation du jus</h3>
+                  <button type="button" id="addPricingItem" class="ghost">Ajouter une ligne</button>
+                </div>
+                <div id="pricingItemsTable"></div>
+              </div>
+              <div id="pricingPackagingBlock" class="full pricing-block">
+                <div class="panel-head compact-head">
+                  <h3>Habillage par format</h3>
+                </div>
+                <div class="form-grid pricing-subgrid">
+                  <label>
+                    Prix bouteille GM
+                    <input name="bottleGMPrice" type="number" min="0" step="1" value="0" required />
+                  </label>
+                  <label>
+                    Prix étiquette GM
+                    <input name="labelGMPrice" type="number" min="0" step="1" value="0" required />
+                  </label>
+                  <label>
+                    Prix bouteille PM
+                    <input name="bottlePMPrice" type="number" min="0" step="1" value="0" required />
+                  </label>
+                  <label>
+                    Prix étiquette PM
+                    <input name="labelPMPrice" type="number" min="0" step="1" value="0" required />
+                  </label>
+                </div>
+              </div>
+              <div id="pricingResultBlock" class="full pricing-block">
+                <div class="panel-head compact-head">
+                  <h3>Résultat</h3>
+                </div>
+                <div id="pricingMetrics" class="stats-grid compact-stats"></div>
+              </div>
+              <div id="packPricingBlock" class="full pricing-block" hidden>
+                <div class="panel-head compact-head">
+                  <h3>Composition du pack</h3>
+                </div>
+                <div id="packPricingTable"></div>
+              </div>
+              <div class="form-actions">
+                <button type="submit">Mettre à jour</button>
+                <button type="button" id="loadPricingFromProduct" class="ghost">Charger le produit</button>
+              </div>
+            </form>
+          </section>
+        </section>
+
+      </main>
+    </div>
+
+    <template id="emptyStateTemplate">
+      <div class="empty-state"><p>Aucune donnÃ©e pour le moment.</p></div>
+    </template>
+
+    <div id="productModal" class="modal" hidden>
+      <div class="modal-backdrop" data-close-product-modal="true"></div>
+      <div class="modal-card">
+        <div class="panel-head">
+          <h3 id="productModalTitle">CrÃ©er un produit</h3>
+          <button id="closeProductModal" class="ghost" type="button">Fermer</button>
+        </div>
+        <form id="catalogueForm" class="form-grid">
+          <input type="hidden" name="id" />
+          <label>
+            Produit
+            <input name="name" required placeholder="Solo 1 - PM" />
+          </label>
+          <label>
+            Code produit
+            <input name="code" required placeholder="SL1PM" />
+          </label>
+          <label>
+            CatÃ©gorie
+            <select name="category" required>
+              <option value="SOLO">SOLO</option>
+              <option value="DUO">DUO</option>
+              <option value="SAISON">SAISON</option>
+              <option value="COCKTAIL">COCKTAIL</option>
+              <option value="PACK">PACK</option>
+            </select>
+          </label>
+          <label>
+            Format
+            <select name="size" required>
+              <option value="">Choisir</option>
+              <option value="PM">PM</option>
+              <option value="GM">GM</option>
+            </select>
+          </label>
+          <label>
+            Statut
+            <select name="status" required>
+              <option value="Actif">Actif</option>
+              <option value="Inactif">Inactif</option>
+            </select>
+          </label>
+          <label>
+            Description
+            <input name="description" required placeholder="Boisson au ditakh" />
+          </label>
+          <label>
+            Prix de vente
+            <input name="defaultPrice" type="number" min="0" step="1" required />
+          </label>
+          <label>
+            CoÃ»t unitaire
+            <input name="defaultCost" type="number" min="0" step="1" required />
+          </label>
+          <label>
+            Type produit
+            <select name="productType" required>
+              <option value="simple">Simple</option>
+              <option value="pack">Pack</option>
+            </select>
+          </label>
+          <label id="packSizeField" class="pack-only" hidden>
+            QuantitÃ© de bouteilles
+            <input name="packSize" type="number" min="1" step="1" placeholder="Ex: 4" />
+          </label>
+          <label id="knownProductListField" class="pack-only" hidden>
+            Liste produits connue
+            <select name="knownProductList">
+              <option value="yes">Oui</option>
+              <option value="no">Non</option>
+            </select>
+          </label>
+          <div class="full pack-only" id="knownProductsPicker" hidden>
+            <div class="selection-box">
+              <span class="field-label">Produits du pack</span>
+              <div id="knownProductsCheckboxes" class="checkbox-grid"></div>
+              <p id="knownProductsTotal" class="muted small"></p>
+              <p class="muted small">
+                Le nombre de produits cochÃ©s doit Ãªtre Ã©gal Ã  la quantitÃ© de bouteilles.
+              </p>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit">Enregistrer</button>
+            <button type="button" class="ghost" data-clear-form="catalogueForm">Vider</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="clientModal" class="modal" hidden>
+      <div class="modal-backdrop" data-close-client-modal="true"></div>
+      <div class="modal-card">
+        <div class="panel-head">
+          <h3 id="clientModalTitle">CrÃ©er un client</h3>
+          <button id="closeClientModal" class="ghost" type="button">Fermer</button>
+        </div>
+        <form id="clientForm" class="form-grid">
+          <input type="hidden" name="id" />
+          <label>Client<input name="name" required placeholder="ANNA CGI" /></label>
+          <label>TÃ©lÃ©phone<input name="phone" placeholder="77 000 00 00" /></label>
+          <label>
+            Type client
+            <select name="type">
+              <option value="">Choisir</option>
+              <option value="Particulier">Particulier</option>
+              <option value="Entreprise">Entreprise</option>
+              <option value="HÃ´tel">HÃ´tel</option>
+              <option value="Event">Event</option>
+              <option value="Revendeur">Revendeur</option>
+              <option value="Famille">Famille</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </label>
+          <label>Ville<input name="city" placeholder="Dakar" /></label>
+          <label>
+            Canal prÃ©fÃ©rÃ©
+            <select name="channel">
+              <option value="">Choisir</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Direct">Direct</option>
+              <option value="Email">Email</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </label>
+          <label class="full">Notes<textarea name="notes" rows="3" placeholder="Informations utiles"></textarea></label>
+          <div class="form-actions">
+            <button type="submit">Enregistrer</button>
+            <button type="button" class="ghost" data-clear-form="clientForm">Vider</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="productionModal" class="modal" hidden>
+      <div class="modal-backdrop" data-close-production-modal="true"></div>
+      <div class="modal-card">
+        <div class="panel-head">
+          <h3 id="productionModalTitle">CrÃ©er un lot</h3>
+          <button id="closeProductionModal" class="ghost" type="button">Fermer</button>
+        </div>
+        <form id="productionForm" class="form-grid">
+          <input type="hidden" name="id" />
+          <label>Date lot<input name="date" type="date" required /></label>
+          <label>Lot<input name="lot" required placeholder="PROD 04. 15 Apr" /></label>
+          <label>
+            Ã‰vÃ¨nement
+            <select name="event" required>
+              <option value="">Choisir</option>
+              <option value="Standard">Standard</option>
+              <option value="Korite">Korite</option>
+              <option value="Tabaski">Tabaski</option>
+              <option value="Magal">Magal</option>
+              <option value="Noel">Noel</option>
+              <option value="PÃ¢ques">PÃ¢ques</option>
+              <option value="CÃ©rÃ©monie">CÃ©rÃ©monie</option>
+              <option value="Ramadan">Ramadan</option>
+              <option value="Autres - Ã©vÃ¨nement">Autres - Ã©vÃ¨nement</option>
+            </select>
+          </label>
+          <label>Produit<select name="productId" required></select></label>
+          <label>QuantitÃ© produite<input name="quantity" type="number" min="1" step="1" required /></label>
+          <label>CoÃ»t unitaire<input name="unitCost" type="number" min="0" step="1" required /></label>
+          <div class="form-actions">
+            <button type="submit">Enregistrer</button>
+            <button type="button" class="ghost" data-clear-form="productionForm">Vider</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="saleModal" class="modal" hidden>
+      <div class="modal-backdrop" data-close-sale-modal="true"></div>
+      <div class="modal-card">
+        <div class="panel-head">
+          <h3 id="saleModalTitle">CrÃ©er une vente</h3>
+          <button id="closeSaleModal" class="ghost" type="button">Fermer</button>
+        </div>
+        <form id="saleForm" class="form-grid">
+          <input type="hidden" name="id" />
+          <label>Date vente<input name="date" type="date" required /></label>
+          <label>Client<select name="clientId" required></select></label>
+          <label>Produit<select name="productId" required></select></label>
+          <label>QuantitÃ© vendue<input name="quantity" type="number" min="1" step="1" required /></label>
+          <label>Prix unitaire<input name="unitPrice" type="number" min="0" step="1" required /></label>
+          <label>
+            Statut
+            <select name="status" required>
+              <option value="">Choisir</option>
+              <option value="PayÃ©">PayÃ©</option>
+              <option value="Partiel">Partiel</option>
+              <option value="ImpayÃ©">ImpayÃ©</option>
+            </select>
+          </label>
+          <label id="amountPaidField" hidden>
+            Montant payÃ©
+            <input name="amountPaid" type="number" min="0" step="1" />
+          </label>
+          <div id="salePackComponentsSection" class="full" hidden>
+            <div class="selection-box">
+              <span class="field-label">Composition du pack pour cette vente</span>
+              <div id="saleProductsCheckboxes" class="checkbox-grid"></div>
+              <p id="saleProductsTotal" class="muted small"></p>
+              <p class="muted small">
+                La somme des quantitÃ©s doit Ãªtre Ã©gale au nombre de bouteilles du pack.
+              </p>
+            </div>
+          </div>
+          <label class="full" id="saleComponentsTextField" hidden>
+            Composition du pack pour cette vente
+            <textarea name="saleComponentsText" rows="4" placeholder="Ex: SL1PM=2&#10;D1PM=2"></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="submit">Enregistrer</button>
+            <button type="button" class="ghost" data-clear-form="saleForm">Vider</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script src="./supabase-config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
+
