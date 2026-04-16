@@ -1,17 +1,26 @@
 {
   "name": "IA Juice App",
   "short_name": "IA Juice",
+  "id": "./",
+  "scope": "./",
   "description": "Suivi production, ventes, clients et stock pour IA Juice.",
   "start_url": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#f9f5ef",
   "theme_color": "#f08a24",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./icons/logo-iajuice.jpeg",
-      "sizes": "1080x1080",
-      "type": "image/jpeg",
+      "src": "./icons/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

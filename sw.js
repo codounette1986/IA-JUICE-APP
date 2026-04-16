@@ -1,5 +1,16 @@
-const CACHE_NAME = "iajuice-pwa-v3";
-const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./icons/logo-iajuice.jpeg"];
+const CACHE_NAME = "iajuice-pwa-v4";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./styles.css",
+  "./app.js",
+  "./supabase-config.js",
+  "./manifest.webmanifest",
+  "./assets/logo-iajuice.jpeg",
+  "./icons/logo-192.png",
+  "./icons/logo-512.png",
+  "./icons/logo-iajuice.jpeg"
+];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
