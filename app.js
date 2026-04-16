@@ -105,7 +105,13 @@ const emptyState = {
   clients: [],
   production: [],
   sales: [],
-  ui: { dashboardFilter: { from: "", to: "" }, pricingCategory: "SOLO", tableSorts: {}, tableSearches: {} },
+  ui: {
+    dashboardFilter: { from: "", to: "" },
+    pricingCategory: "SOLO",
+    tableSorts: {},
+    tableSearches: {},
+    sharedPackaging: { bottleGMPrice: 0, labelGMPrice: 0, bottlePMPrice: 0, labelPMPrice: 0 },
+  },
 };
 
 const demoState = {
@@ -171,7 +177,13 @@ const demoState = {
   ],
   production: [],
   sales: [],
-  ui: { dashboardFilter: { from: "", to: "" }, pricingCategory: "SOLO", tableSorts: {}, tableSearches: {} },
+  ui: {
+    dashboardFilter: { from: "", to: "" },
+    pricingCategory: "SOLO",
+    tableSorts: {},
+    tableSearches: {},
+    sharedPackaging: { bottleGMPrice: 0, labelGMPrice: 0, bottlePMPrice: 0, labelPMPrice: 0 },
+  },
 };
 
 demoState.products[2].components = [
@@ -275,6 +287,9 @@ forms.pricingForm.elements.productId.addEventListener("change", () => {
 });
 forms.pricingForm.addEventListener("input", refreshPricingPreview);
 forms.pricingForm.addEventListener("change", refreshPricingPreview);
+["bottleGMPrice", "labelGMPrice", "bottlePMPrice", "labelPMPrice"].forEach((fieldName) => {
+  forms.pricingForm.elements[fieldName].addEventListener("change", () => updateSharedPackagingFromForm(true));
+});
 
 toggleProductFormButton.addEventListener("click", () => {
   openProductModal();
@@ -374,6 +389,26 @@ function persist(options = {}) {
 
 function getTimestamp() {
   return new Date().toISOString();
+}
+
+function getSharedPackagingSettings() {
+  return {
+    bottleGMPrice: Number(state.ui?.sharedPackaging?.bottleGMPrice || 0),
+    labelGMPrice: Number(state.ui?.sharedPackaging?.labelGMPrice || 0),
+    bottlePMPrice: Number(state.ui?.sharedPackaging?.bottlePMPrice || 0),
+    labelPMPrice: Number(state.ui?.sharedPackaging?.labelPMPrice || 0),
+  };
+}
+
+function updateSharedPackagingFromForm(shouldPersist = false) {
+  if (!forms.pricingForm) return;
+  state.ui.sharedPackaging = {
+    bottleGMPrice: Number(forms.pricingForm.elements.bottleGMPrice.value || 0),
+    labelGMPrice: Number(forms.pricingForm.elements.labelGMPrice.value || 0),
+    bottlePMPrice: Number(forms.pricingForm.elements.bottlePMPrice.value || 0),
+    labelPMPrice: Number(forms.pricingForm.elements.labelPMPrice.value || 0),
+  };
+  if (shouldPersist) persist();
 }
 
 function touchRecord(payload, existing = null) {
@@ -1165,6 +1200,7 @@ function onSubmitPricing(event) {
 
   const pricingDetails = getPricingDetailsFromForm();
   const pricingMetricsValues = computePricingDetails(pricingDetails);
+  updateSharedPackagingFromForm(false);
   const defaultCost = isPackProduct
     ? computePackCost(product)
     : product.size === "GM"
@@ -1665,10 +1701,11 @@ function loadPricingForm(productId) {
   }
   forms.pricingForm.elements.pricingQtyGM.value = details.qtyGM;
   forms.pricingForm.elements.pricingQtyPM.value = details.qtyPM;
-  forms.pricingForm.elements.bottleGMPrice.value = details.bottleGMPrice;
-  forms.pricingForm.elements.labelGMPrice.value = details.labelGMPrice;
-  forms.pricingForm.elements.bottlePMPrice.value = details.bottlePMPrice;
-  forms.pricingForm.elements.labelPMPrice.value = details.labelPMPrice;
+  const sharedPackaging = getSharedPackagingSettings();
+  forms.pricingForm.elements.bottleGMPrice.value = sharedPackaging.bottleGMPrice;
+  forms.pricingForm.elements.labelGMPrice.value = sharedPackaging.labelGMPrice;
+  forms.pricingForm.elements.bottlePMPrice.value = sharedPackaging.bottlePMPrice;
+  forms.pricingForm.elements.labelPMPrice.value = sharedPackaging.labelPMPrice;
   renderPricingItemsTable(details.juiceItems);
   refreshPricingPreview();
   renderPackPricingBreakdown(product);
@@ -1941,13 +1978,14 @@ function createEmptyPricingItem() {
 
 function getNormalizedPricingDetails(product) {
   const details = product?.pricingDetails || {};
+  const sharedPackaging = getSharedPackagingSettings();
   return {
     qtyGM: Number(details.qtyGM || 0),
     qtyPM: Number(details.qtyPM || 0),
-    bottleGMPrice: Number(details.bottleGMPrice || 0),
-    labelGMPrice: Number(details.labelGMPrice || 0),
-    bottlePMPrice: Number(details.bottlePMPrice || 0),
-    labelPMPrice: Number(details.labelPMPrice || 0),
+    bottleGMPrice: sharedPackaging.bottleGMPrice,
+    labelGMPrice: sharedPackaging.labelGMPrice,
+    bottlePMPrice: sharedPackaging.bottlePMPrice,
+    labelPMPrice: sharedPackaging.labelPMPrice,
     juiceItems: Array.isArray(details.juiceItems) && details.juiceItems.length
       ? details.juiceItems.map((item) => ({
           label: item.label || "",
