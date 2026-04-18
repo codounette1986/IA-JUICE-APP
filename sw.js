@@ -1,4 +1,4 @@
-const CACHE_NAME = "iajuice-pwa-v5";
+const CACHE_NAME = "iajuice-pwa-v6";
 const ASSETS = [
   "./",
   "./index.html",
