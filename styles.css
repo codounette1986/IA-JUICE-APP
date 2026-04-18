@@ -80,6 +80,17 @@ button.danger { background: linear-gradient(135deg, var(--danger), #d7764a); }
   position: sticky;
   top: 20px;
   height: calc(100vh - 40px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(191, 84, 18, 0.22);
+  border-radius: 999px;
 }
 
 .content { border-radius: 36px; padding: 24px; }
@@ -113,6 +124,7 @@ h1, h2, h3 { margin: 0; }
 .muted { color: var(--muted); }
 
 .nav, .list, .stack, .plain-list { display: grid; gap: 12px; }
+.nav { min-height: min-content; }
 
 .nav-link {
   text-align: left;
