@@ -411,6 +411,15 @@ function updateSharedPackagingFromForm(shouldPersist = false) {
   if (shouldPersist) persist();
 }
 
+function syncPricingPackagingFields() {
+  if (!forms.pricingForm) return;
+  const sharedPackaging = getSharedPackagingSettings();
+  forms.pricingForm.elements.bottleGMPrice.value = sharedPackaging.bottleGMPrice;
+  forms.pricingForm.elements.labelGMPrice.value = sharedPackaging.labelGMPrice;
+  forms.pricingForm.elements.bottlePMPrice.value = sharedPackaging.bottlePMPrice;
+  forms.pricingForm.elements.labelPMPrice.value = sharedPackaging.labelPMPrice;
+}
+
 function touchRecord(payload, existing = null) {
   return {
     ...payload,
@@ -579,6 +588,7 @@ function clearForm(form) {
     form.elements.knownProductList.value = "yes";
   }
   if (form === forms.pricingForm) {
+    syncPricingPackagingFields();
     renderPricingItemsTable([createEmptyPricingItem()]);
     refreshPricingPreview();
   }
@@ -1581,8 +1591,13 @@ function renderPricing() {
   const category = state.ui.pricingCategory || "SOLO";
   const isPackCategory = category === "PACK";
   const products = state.products.filter(
-    (product) => product.category === category && product.size !== "PM" && product.status !== "Inactif",
+    (product) =>
+      product.category === category &&
+      product.size !== "PM" &&
+      product.status !== "Inactif" &&
+      (!isPackCategory || product.knownProductList !== "yes"),
   );
+  syncPricingPackagingFields();
   const pricingSelect = forms.pricingForm.elements.productId;
   const currentProductId = pricingSelect.value;
   pricingSelect.innerHTML = `<option value="">Choisir un produit</option>${products
@@ -1701,11 +1716,7 @@ function loadPricingForm(productId) {
   }
   forms.pricingForm.elements.pricingQtyGM.value = details.qtyGM;
   forms.pricingForm.elements.pricingQtyPM.value = details.qtyPM;
-  const sharedPackaging = getSharedPackagingSettings();
-  forms.pricingForm.elements.bottleGMPrice.value = sharedPackaging.bottleGMPrice;
-  forms.pricingForm.elements.labelGMPrice.value = sharedPackaging.labelGMPrice;
-  forms.pricingForm.elements.bottlePMPrice.value = sharedPackaging.bottlePMPrice;
-  forms.pricingForm.elements.labelPMPrice.value = sharedPackaging.labelPMPrice;
+  syncPricingPackagingFields();
   renderPricingItemsTable(details.juiceItems);
   refreshPricingPreview();
   renderPackPricingBreakdown(product);
