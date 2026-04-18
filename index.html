@@ -430,7 +430,12 @@
         <form id="saleForm" class="form-grid">
           <input type="hidden" name="id" />
           <label>Date vente<input name="date" type="date" required /></label>
-          <label>Client<select name="clientId" required></select></label>
+          <label>
+            Client
+            <input name="clientSearch" list="clientsOptions" placeholder="Tapez pour filtrer un client" required />
+            <input type="hidden" name="clientId" />
+            <datalist id="clientsOptions"></datalist>
+          </label>
           <label>Produit<select name="productId" required></select></label>
           <label>QuantitÃ© vendue<input name="quantity" type="number" min="1" step="1" required /></label>
           <label>Prix unitaire<input name="unitPrice" type="number" min="0" step="1" required /></label>

@@ -281,6 +281,8 @@ forms.catalogueForm.elements.packSize.addEventListener("input", refreshKnownProd
 forms.saleForm.elements.productId.addEventListener("change", hydrateSaleComponentsFromProduct);
 forms.saleForm.elements.quantity.addEventListener("input", refreshSaleProductsCheckboxesState);
 forms.saleForm.elements.status.addEventListener("change", updateSalePaymentVisibility);
+forms.saleForm.elements.clientSearch.addEventListener("input", syncSaleClientSelection);
+forms.saleForm.elements.clientSearch.addEventListener("change", syncSaleClientSelection);
 forms.pricingForm.elements.productId.addEventListener("change", () => {
   syncPricingPmSelect();
   if (forms.pricingForm.elements.productId.value) loadPricingForm(forms.pricingForm.elements.productId.value);
@@ -759,13 +761,30 @@ function hydrateSelects() {
 
   const clientSelect = forms.saleForm.elements.clientId;
   const currentClientValue = clientSelect.value;
-  clientSelect.innerHTML = `<option value="">Choisir un client</option>${state.clients
-    .map((client) => `<option value="${client.id}">${escapeHtml(client.name)}</option>`)
-    .join("")}`;
+  const currentSearchValue = forms.saleForm.elements.clientSearch.value;
+  const clientsOptions = state.clients
+    .map((client) => {
+      const label = `${client.name}${client.phone ? ` - ${client.phone}` : ""}`;
+      return `<option value="${escapeHtml(label)}"></option>`;
+    })
+    .join("");
+  document.querySelector("#clientsOptions").innerHTML = clientsOptions;
   clientSelect.value = currentClientValue;
+  const currentClient = state.clients.find((client) => client.id === currentClientValue);
+  forms.saleForm.elements.clientSearch.value =
+    currentSearchValue || (currentClient ? `${currentClient.name}${currentClient.phone ? ` - ${currentClient.phone}` : ""}` : "");
 
   renderKnownProductsCheckboxes();
   renderSaleProductsCheckboxes();
+}
+
+function syncSaleClientSelection() {
+  const search = forms.saleForm.elements.clientSearch.value.trim().toLowerCase();
+  const matchedClient = state.clients.find((client) => {
+    const label = `${client.name}${client.phone ? ` - ${client.phone}` : ""}`.toLowerCase();
+    return label === search;
+  });
+  forms.saleForm.elements.clientId.value = matchedClient ? matchedClient.id : "";
 }
 
 function syncProductTypeFromCategory() {
@@ -1517,7 +1536,7 @@ function renderProduction() {
 
 function renderSales() {
   document.querySelector("#salesTable").innerHTML = renderTable(
-    ["Date vente", "Client", "Produit", "Statut", "Qté", "Prix unitaire", "CA", "Montant payé", "Montant dû", "Coût", "Bénéfice", "Composition pack", "Actions"],
+    ["Actions", "Date vente", "Client", "Produit", "Statut", "Qté", "Prix unitaire", "CA", "Montant payé", "Montant dû", "Coût", "Bénéfice", "Composition pack"],
     state.sales.map((sale) => {
       const product = findById("products", sale.productId);
       const client = findById("clients", sale.clientId);
@@ -1527,6 +1546,7 @@ function renderSales() {
       const amountPaid = getSaleAmountPaid(sale);
       const amountDue = Math.max(0, totalSale - amountPaid);
       return [
+        actionCell("sales", sale.id),
         formatDate(sale.date),
         client?.name || "Client supprimé",
         product?.name || "Produit supprimé",
@@ -1539,7 +1559,6 @@ function renderSales() {
         formatCurrency(totalCost),
         formatCurrency((sale.unitPrice - unitCost) * sale.quantity),
         sale.saleComponents?.length ? escapeHtml(stringifyComponents(sale.saleComponents, ", ")) : "—",
-        actionCell("sales", sale.id),
       ];
     }),
   );
