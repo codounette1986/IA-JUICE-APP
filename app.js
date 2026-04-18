@@ -901,7 +901,7 @@ function renderKnownProductsCheckboxes() {
             ${currentQuantities.has(product.id) ? "checked" : ""}
           />
           <span class="checkbox-title">${escapeHtml(product.name)}</span>
-          <span class="checkbox-meta">${escapeHtml(product.description || product.ingredients || product.code)}</span>
+          <span class="checkbox-meta">${escapeHtml(product.code)} • Stock dispo: ${formatNumber(getAvailableStockForProduct(product.id))}</span>
           <input
             class="checkbox-qty"
             type="number"
