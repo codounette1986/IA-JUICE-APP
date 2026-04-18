@@ -1593,7 +1593,7 @@ function renderPricing() {
   const products = state.products.filter(
     (product) =>
       product.category === category &&
-      product.size !== "PM" &&
+      (isPackCategory || product.size !== "PM") &&
       product.status !== "Inactif" &&
       (!isPackCategory || product.knownProductList !== "yes"),
   );
