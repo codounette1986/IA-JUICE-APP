@@ -787,6 +787,14 @@ function syncSaleClientSelection() {
   forms.saleForm.elements.clientId.value = matchedClient ? matchedClient.id : "";
 }
 
+function setSaleClientSelection(clientId) {
+  const client = findById("clients", clientId);
+  forms.saleForm.elements.clientId.value = clientId || "";
+  forms.saleForm.elements.clientSearch.value = client
+    ? `${client.name}${client.phone ? ` - ${client.phone}` : ""}`
+    : "";
+}
+
 function syncProductTypeFromCategory() {
   forms.catalogueForm.elements.productType.value =
     forms.catalogueForm.elements.category.value === "PACK" ? "pack" : "simple";
@@ -1381,7 +1389,7 @@ function editItem(collection, id) {
     openSaleModal(true);
     form.elements.id.value = item.id;
     form.elements.date.value = item.date;
-    form.elements.clientId.value = item.clientId;
+    setSaleClientSelection(item.clientId);
     form.elements.productId.value = item.productId;
     form.elements.quantity.value = item.quantity;
     form.elements.unitPrice.value = item.unitPrice;
