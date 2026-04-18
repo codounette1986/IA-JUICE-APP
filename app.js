@@ -1590,13 +1590,19 @@ function renderStock() {
 function renderPricing() {
   const category = state.ui.pricingCategory || "SOLO";
   const isPackCategory = category === "PACK";
-  const products = state.products.filter(
-    (product) =>
-      product.category === category &&
-      (isPackCategory || product.size !== "PM") &&
-      product.status !== "Inactif" &&
-      (!isPackCategory || product.knownProductList !== "yes"),
-  );
+  const products = isPackCategory
+    ? state.products.filter(
+        (product) =>
+          product.productType === "pack" &&
+          product.status !== "Inactif" &&
+          product.knownProductList !== "yes",
+      )
+    : state.products.filter(
+        (product) =>
+          product.category === category &&
+          product.size !== "PM" &&
+          product.status !== "Inactif",
+      );
   syncPricingPackagingFields();
   const pricingSelect = forms.pricingForm.elements.productId;
   const currentProductId = pricingSelect.value;
