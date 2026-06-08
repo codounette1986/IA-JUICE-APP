@@ -1,6 +1,6 @@
 ﻿const STORAGE_KEY = "iajuice-pwa-state-v2";
 const SUPABASE_CONFIG = window.IAJUICE_SUPABASE || {};
-const SUPABASE_TABLES = ["products", "clients", "production", "sales"];
+const SUPABASE_TABLES = ["products", "clients", "production", "sales", "expenses"];
 let remoteSyncTimer = null;
 let remoteSyncInFlight = false;
 const clone = (value) =>
@@ -105,6 +105,7 @@ const emptyState = {
   clients: [],
   production: [],
   sales: [],
+  expenses: [],
   ui: {
     dashboardFilter: { from: "", to: "" },
     pricingCategory: "SOLO",
@@ -177,6 +178,7 @@ const demoState = {
   ],
   production: [],
   sales: [],
+  expenses: [],
   ui: {
     dashboardFilter: { from: "", to: "" },
     pricingCategory: "SOLO",
@@ -214,6 +216,7 @@ const forms = {
   clientForm: document.querySelector("#clientForm"),
   productionForm: document.querySelector("#productionForm"),
   saleForm: document.querySelector("#saleForm"),
+  expenseForm: document.querySelector("#expenseForm"),
   pricingForm: document.querySelector("#pricingForm"),
   dashboardFilterForm: document.querySelector("#dashboardFilterForm"),
 };
@@ -222,18 +225,22 @@ const toggleProductFormButton = document.querySelector("#toggleProductForm");
 const toggleClientFormButton = document.querySelector("#toggleClientForm");
 const toggleProductionFormButton = document.querySelector("#toggleProductionForm");
 const toggleSaleFormButton = document.querySelector("#toggleSaleForm");
+const toggleExpenseFormButton = document.querySelector("#toggleExpenseForm");
 const productModal = document.querySelector("#productModal");
 const clientModal = document.querySelector("#clientModal");
 const productionModal = document.querySelector("#productionModal");
 const saleModal = document.querySelector("#saleModal");
+const expenseModal = document.querySelector("#expenseModal");
 const productModalTitle = document.querySelector("#productModalTitle");
 const clientModalTitle = document.querySelector("#clientModalTitle");
 const productionModalTitle = document.querySelector("#productionModalTitle");
 const saleModalTitle = document.querySelector("#saleModalTitle");
+const expenseModalTitle = document.querySelector("#expenseModalTitle");
 const closeProductModalButton = document.querySelector("#closeProductModal");
 const closeClientModalButton = document.querySelector("#closeClientModal");
 const closeProductionModalButton = document.querySelector("#closeProductionModal");
 const closeSaleModalButton = document.querySelector("#closeSaleModal");
+const closeExpenseModalButton = document.querySelector("#closeExpenseModal");
 const packSizeField = document.querySelector("#packSizeField");
 const knownProductListField = document.querySelector("#knownProductListField");
 const knownProductsCheckboxes = document.querySelector("#knownProductsCheckboxes");
@@ -267,6 +274,7 @@ forms.catalogueForm.addEventListener("submit", onSubmitProduct);
 forms.clientForm.addEventListener("submit", onSubmitClient);
 forms.productionForm.addEventListener("submit", onSubmitProduction);
 forms.saleForm.addEventListener("submit", onSubmitSale);
+forms.expenseForm.addEventListener("submit", onSubmitExpense);
 forms.pricingForm.addEventListener("submit", onSubmitPricing);
 forms.dashboardFilterForm.addEventListener("submit", onSubmitDashboardFilter);
 
@@ -299,11 +307,13 @@ toggleProductFormButton.addEventListener("click", () => {
 toggleClientFormButton.addEventListener("click", () => openClientModal());
 toggleProductionFormButton.addEventListener("click", () => openProductionModal());
 toggleSaleFormButton.addEventListener("click", () => openSaleModal());
+toggleExpenseFormButton.addEventListener("click", () => openExpenseModal());
 
 closeProductModalButton.addEventListener("click", closeProductModal);
 closeClientModalButton.addEventListener("click", closeClientModal);
 closeProductionModalButton.addEventListener("click", closeProductionModal);
 closeSaleModalButton.addEventListener("click", closeSaleModal);
+closeExpenseModalButton.addEventListener("click", closeExpenseModal);
 document.querySelectorAll("[data-close-product-modal]").forEach((element) => {
   element.addEventListener("click", closeProductModal);
 });
@@ -315,6 +325,9 @@ document.querySelectorAll("[data-close-production-modal]").forEach((element) => 
 });
 document.querySelectorAll("[data-close-sale-modal]").forEach((element) => {
   element.addEventListener("click", closeSaleModal);
+});
+document.querySelectorAll("[data-close-expense-modal]").forEach((element) => {
+  element.addEventListener("click", closeExpenseModal);
 });
 
 document.querySelector("#loadPricingFromProduct").addEventListener("click", loadPricingFormFromSelectedProduct);
@@ -656,9 +669,23 @@ function closeSaleModal() {
   saleModalTitle.textContent = "Créer une vente";
 }
 
+function openExpenseModal(editMode = false) {
+  if (!editMode) {
+    clearForm(forms.expenseForm);
+    expenseModalTitle.textContent = "Créer une dépense";
+  }
+  expenseModal.hidden = false;
+}
+
+function closeExpenseModal() {
+  expenseModal.hidden = true;
+  clearForm(forms.expenseForm);
+  expenseModalTitle.textContent = "Créer une dépense";
+}
+
 function applyDefaultDates() {
   const today = new Date().toISOString().slice(0, 10);
-  ["productionForm", "saleForm"].forEach((formKey) => {
+  ["productionForm", "saleForm", "expenseForm"].forEach((formKey) => {
     const input = forms[formKey].elements.date;
     if (!input.value) input.value = today;
   });
@@ -682,6 +709,7 @@ function switchView(view) {
     clients: "Clients",
     production: "Production",
     ventes: "Ventes",
+    depenses: "Dépenses",
     stock: "Stock",
     pricing: "Pricing",
   }[view];
@@ -696,6 +724,7 @@ function render() {
   renderClients();
   renderProduction();
   renderSales();
+  renderExpenses();
   renderStock();
   renderPricing();
   bindActions();
@@ -1278,6 +1307,22 @@ function onSubmitPricing(event) {
   showToast("Pricing mis à jour.");
 }
 
+function onSubmitExpense(event) {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  upsert("expenses", {
+    id: formData.get("id") || makeId(),
+    date: formData.get("date"),
+    label: formData.get("label").trim(),
+    category: formData.get("category").trim(),
+    amount: Number(formData.get("amount")) || 0,
+    paymentMethod: formData.get("paymentMethod").trim(),
+    notes: formData.get("notes").trim(),
+  });
+  closeExpenseModal();
+  showToast("Dépense enregistrée.");
+}
+
 function resolveAmountPaid(formData, quantity) {
   const status = formData.get("status");
   const unitPrice = Number(formData.get("unitPrice")) || 0;
@@ -1383,6 +1428,17 @@ function editItem(collection, id) {
     return;
   }
 
+  if (collection === "expenses") {
+    const form = forms.expenseForm;
+    expenseModalTitle.textContent = "Modifier une dépense";
+    openExpenseModal(true);
+    Object.entries(item).forEach(([key, value]) => {
+      if (form.elements[key]) form.elements[key].value = value;
+    });
+    switchView("depenses");
+    return;
+  }
+
   if (collection === "sales") {
     const form = forms.saleForm;
     saleModalTitle.textContent = "Modifier une vente";
@@ -1458,6 +1514,7 @@ function renderDashboard() {
   document.querySelector("#filterStats").innerHTML = [
     ["CA", formatCurrency(metrics.filteredRevenue), "Période sélectionnée"],
     ["Bénéfice", formatCurrency(metrics.filteredProfit), "Période sélectionnée"],
+    ["Dépenses manuelles", formatCurrency(metrics.manualExpenses), "Période sélectionnée"],
     ["Bouteilles vendues", formatNumber(metrics.filteredUnits), "Période sélectionnée"],
     ["Clients actifs", formatNumber(metrics.activeClients), "Période sélectionnée"],
   ]
@@ -1569,6 +1626,25 @@ function renderSales() {
         sale.saleComponents?.length ? escapeHtml(stringifyComponents(sale.saleComponents, ", ")) : "—",
       ];
     }),
+  );
+}
+
+function renderExpenses() {
+  const expenses = getAllExpenses();
+  document.querySelector("#expensesTable").innerHTML = renderTable(
+    ["Date dépense", "Libellé", "Catégorie", "Montant", "Mode de paiement", "Notes", "Type", "Actions"],
+    expenses.map((expense) => [
+      formatDate(expense.date),
+      escapeHtml(repairText(expense.label || "—")),
+      escapeHtml(repairText(expense.category || "—")),
+      formatCurrency(expense.amount),
+      escapeHtml(repairText(expense.paymentMethod || "—")),
+      escapeHtml(repairText(expense.notes || "—")),
+      expense.source === "production" ? "Automatique" : "Manuelle",
+      expense.source === "production"
+        ? `<span class="chip">Synchronisée depuis la production</span>`
+        : actionCell("expenses", expense.id),
+    ]),
   );
 }
 
@@ -1767,6 +1843,48 @@ function getClientStats() {
   });
 }
 
+function getProductionExpenses() {
+  return state.production.map((entry) => {
+    const product = findById("products", entry.productId);
+    return {
+      id: `production-${entry.id}`,
+      date: entry.date,
+      label: `Production - ${product?.name || "Produit supprimé"}`,
+      category: "Coût de production",
+      amount: Number(entry.quantity || 0) * Number(entry.unitCost || 0),
+      paymentMethod: "Automatique",
+      notes: entry.lot ? `Lot ${entry.lot}${entry.event ? ` • ${entry.event}` : ""}` : (entry.event || ""),
+      source: "production",
+      linkedId: entry.id,
+    };
+  });
+}
+
+function getManualExpenses() {
+  return (state.expenses || []).map((expense) => ({
+    ...expense,
+    amount: Number(expense.amount || 0),
+    source: "manual",
+    linkedId: expense.id,
+  }));
+}
+
+function getAllExpenses() {
+  return [...getProductionExpenses(), ...getManualExpenses()].sort((a, b) => {
+    if ((b.date || "") !== (a.date || "")) return String(b.date || "").localeCompare(String(a.date || ""));
+    return String(a.label || "").localeCompare(String(b.label || ""), "fr", { sensitivity: "base" });
+  });
+}
+
+function getFilteredManualExpenses(range = {}) {
+  const { from = "", to = "" } = range;
+  return getManualExpenses().filter((expense) => {
+    if (from && expense.date < from) return false;
+    if (to && expense.date > to) return false;
+    return true;
+  });
+}
+
 function computeDashboardMetrics() {
   const filteredSales = getFilteredSales();
   const today = new Date().toISOString().slice(0, 10);
@@ -1776,7 +1894,8 @@ function computeDashboardMetrics() {
   const monthSales = state.sales.filter((sale) => sale.date.startsWith(monthPrefix));
   const yearSales = state.sales.filter((sale) => sale.date.startsWith(yearPrefix));
   const toRevenue = (sales) => sales.reduce((sum, sale) => sum + sale.quantity * sale.unitPrice, 0);
-  const toProfit = (sales) => sales.reduce((sum, sale) => sum + (sale.unitPrice - getSaleUnitCost(sale)) * sale.quantity, 0);
+  const toGrossProfit = (sales) => sales.reduce((sum, sale) => sum + (sale.unitPrice - getSaleUnitCost(sale)) * sale.quantity, 0);
+  const sumExpenses = (expenses) => expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
   const toUnits = (sales) => sales.reduce((sum, sale) => sum + sale.quantity, 0);
   const toActiveClients = (sales) => new Set(sales.map((sale) => sale.clientId)).size;
   const toOutstandingAmount = (sales) =>
@@ -1785,6 +1904,9 @@ function computeDashboardMetrics() {
       .reduce((sum, sale) => sum + Math.max(0, sale.quantity * sale.unitPrice - getSaleAmountPaid(sale)), 0);
   const filter = state.ui.dashboardFilter;
   const filterLabel = filter.from || filter.to ? `${filter.from || "début"} -> ${filter.to || "fin"}` : "";
+  const filteredManualExpenses = getFilteredManualExpenses(filter);
+  const monthManualExpenses = getManualExpenses().filter((expense) => expense.date?.startsWith(monthPrefix));
+  const yearManualExpenses = getManualExpenses().filter((expense) => expense.date?.startsWith(yearPrefix));
 
   const topProducts = state.products
     .map((product) => {
@@ -1810,16 +1932,17 @@ function computeDashboardMetrics() {
   return {
     filterLabel,
     filteredRevenue: toRevenue(filteredSales),
-    filteredProfit: toProfit(filteredSales),
+    filteredProfit: toGrossProfit(filteredSales) - sumExpenses(filteredManualExpenses),
     filteredUnits: toUnits(filteredSales),
     activeClients: toActiveClients(filteredSales),
     todayRevenue: toRevenue(todaySales),
-    todayProfit: toProfit(todaySales),
+    todayProfit: toGrossProfit(todaySales),
     monthRevenue: toRevenue(monthSales),
-    monthProfit: toProfit(monthSales),
+    monthProfit: toGrossProfit(monthSales) - sumExpenses(monthManualExpenses),
     yearRevenue: toRevenue(yearSales),
-    yearProfit: toProfit(yearSales),
+    yearProfit: toGrossProfit(yearSales) - sumExpenses(yearManualExpenses),
     outstandingAmount: toOutstandingAmount(filteredSales),
+    manualExpenses: sumExpenses(filteredManualExpenses),
     topProducts,
     stockAlerts,
   };
@@ -2450,6 +2573,7 @@ function getTableKeyFromHeaders(headers) {
   if (first.includes("client")) return "clients";
   if (first.includes("date lot")) return "production";
   if (first.includes("date vente")) return "sales";
+  if (first.includes("date dépense") || first.includes("date depense")) return "expenses";
   if (first.includes("produit") && String(headers[2] || "").toLowerCase().includes("type")) return "stock";
   if (first.includes("produit")) return "catalogue";
   return "default";
@@ -2638,6 +2762,19 @@ function buildExcelWorkbookXml() {
           stringifyComponents(sale.saleComponents || [], "; "),
         ];
       }),
+    },
+    {
+      name: "DEPENSES",
+      headers: ["Date", "Libelle", "Categorie", "Montant", "ModePaiement", "Notes", "Type"],
+      rows: getAllExpenses().map((expense) => [
+        expense.date,
+        expense.label || "",
+        expense.category || "",
+        expense.amount || 0,
+        expense.paymentMethod || "",
+        expense.notes || "",
+        expense.source === "production" ? "Automatique" : "Manuelle",
+      ]),
     },
     {
       name: "STOCK",
