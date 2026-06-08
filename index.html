@@ -36,6 +36,7 @@
           <button class="nav-link" data-view="clients">Clients</button>
           <button class="nav-link" data-view="production">Production</button>
           <button class="nav-link" data-view="ventes">Ventes</button>
+          <button class="nav-link" data-view="depenses">Dépenses</button>
           <button class="nav-link" data-view="stock">Stock</button>
           <button class="nav-link" data-view="pricing">Pricing</button>
         </nav>
@@ -140,6 +141,16 @@
               <button id="toggleSaleForm" class="secondary">CrÃ©er une vente</button>
             </div>
             <div id="salesTable"></div>
+          </section>
+        </section>
+
+        <section id="depensesView" class="view">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>Dépenses</h3>
+              <button id="toggleExpenseForm" class="secondary">Créer une dépense</button>
+            </div>
+            <div id="expensesTable"></div>
           </section>
         </section>
 
@@ -469,6 +480,52 @@
           <div class="form-actions">
             <button type="submit">Enregistrer</button>
             <button type="button" class="ghost" data-clear-form="saleForm">Vider</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="expenseModal" class="modal" hidden>
+      <div class="modal-backdrop" data-close-expense-modal="true"></div>
+      <div class="modal-card">
+        <div class="panel-head">
+          <h3 id="expenseModalTitle">Créer une dépense</h3>
+          <button id="closeExpenseModal" class="ghost" type="button">Fermer</button>
+        </div>
+        <form id="expenseForm" class="form-grid">
+          <input type="hidden" name="id" />
+          <label>Date dépense<input name="date" type="date" required /></label>
+          <label>Libellé<input name="label" required placeholder="Ex: Achat bouteilles" /></label>
+          <label>
+            Catégorie
+            <select name="category" required>
+              <option value="">Choisir</option>
+              <option value="Matières premières">Matières premières</option>
+              <option value="Emballage">Emballage</option>
+              <option value="Transport">Transport</option>
+              <option value="Équipement">Équipement</option>
+              <option value="Communication">Communication</option>
+              <option value="Main d'œuvre">Main d'œuvre</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </label>
+          <label>Montant<input name="amount" type="number" min="0" step="1" required /></label>
+          <label>
+            Mode de paiement
+            <select name="paymentMethod">
+              <option value="">Choisir</option>
+              <option value="Espèces">Espèces</option>
+              <option value="Wave">Wave</option>
+              <option value="Orange Money">Orange Money</option>
+              <option value="Virement">Virement</option>
+              <option value="Carte">Carte</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </label>
+          <label class="full">Notes<textarea name="notes" rows="3" placeholder="Détail de la dépense"></textarea></label>
+          <div class="form-actions">
+            <button type="submit">Enregistrer</button>
+            <button type="button" class="ghost" data-clear-form="expenseForm">Vider</button>
           </div>
         </form>
       </div>
