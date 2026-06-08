@@ -301,19 +301,21 @@ forms.pricingForm.addEventListener("change", refreshPricingPreview);
   forms.pricingForm.elements[fieldName].addEventListener("change", () => updateSharedPackagingFromForm(true));
 });
 
-toggleProductFormButton.addEventListener("click", () => {
-  openProductModal();
-});
-toggleClientFormButton.addEventListener("click", () => openClientModal());
-toggleProductionFormButton.addEventListener("click", () => openProductionModal());
-toggleSaleFormButton.addEventListener("click", () => openSaleModal());
-toggleExpenseFormButton.addEventListener("click", () => openExpenseModal());
+if (toggleProductFormButton) {
+  toggleProductFormButton.addEventListener("click", () => {
+    openProductModal();
+  });
+}
+if (toggleClientFormButton) toggleClientFormButton.addEventListener("click", () => openClientModal());
+if (toggleProductionFormButton) toggleProductionFormButton.addEventListener("click", () => openProductionModal());
+if (toggleSaleFormButton) toggleSaleFormButton.addEventListener("click", () => openSaleModal());
+if (toggleExpenseFormButton) toggleExpenseFormButton.addEventListener("click", () => openExpenseModal());
 
-closeProductModalButton.addEventListener("click", closeProductModal);
-closeClientModalButton.addEventListener("click", closeClientModal);
-closeProductionModalButton.addEventListener("click", closeProductionModal);
-closeSaleModalButton.addEventListener("click", closeSaleModal);
-closeExpenseModalButton.addEventListener("click", closeExpenseModal);
+if (closeProductModalButton) closeProductModalButton.addEventListener("click", closeProductModal);
+if (closeClientModalButton) closeClientModalButton.addEventListener("click", closeClientModal);
+if (closeProductionModalButton) closeProductionModalButton.addEventListener("click", closeProductionModal);
+if (closeSaleModalButton) closeSaleModalButton.addEventListener("click", closeSaleModal);
+if (closeExpenseModalButton) closeExpenseModalButton.addEventListener("click", closeExpenseModal);
 document.querySelectorAll("[data-close-product-modal]").forEach((element) => {
   element.addEventListener("click", closeProductModal);
 });
@@ -328,6 +330,11 @@ document.querySelectorAll("[data-close-sale-modal]").forEach((element) => {
 });
 document.querySelectorAll("[data-close-expense-modal]").forEach((element) => {
   element.addEventListener("click", closeExpenseModal);
+});
+
+document.addEventListener("click", (event) => {
+  const trigger = event.target.closest("#toggleExpenseForm");
+  if (trigger) openExpenseModal();
 });
 
 document.querySelector("#loadPricingFromProduct").addEventListener("click", loadPricingFormFromSelectedProduct);
